@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="odom_topic" default="/vicon/zed1/odom"/>
+	<!-- Vicon odometry -->
+    <include file="$(find mocap_vicon)/launch/vicon.launch"/>
+
+    <!-- zed launch -->
+    <include file="$(find zed_wrapper)/launch/zedm.launch"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="init_world_odom_transform_pub" args="0 0 0 0 0 0 world odom"/>
+	<node pkg="tf2_ros" type="static_transform_publisher" name="init_odom_robotodom_transform_pub" args="0 0 0 0 0 0 odom dragonfly67/odom"/>
+</launch>
