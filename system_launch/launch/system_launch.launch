@@ -4,11 +4,13 @@
 	<arg name="gains_file" default="$(find control_launch)/config/so3_control_gains.yaml"/>
 	<arg name="robot" default="quadrotor" />
 	<!-- <arg name="odom_topic" default="/vicon/f250_ariel/odom" /> -->
-	<arg name="use_vicon"  default="true" />
+	<arg name="use_vicon"  default="false" />
     <!-- <arg name="odom_topic" default="/vins_fusion/imu_propagate" unless="$(arg safe_odom)" /> 
     <arg name="odom_topic" default="/$(arg robot)/safe_odom/odom"  if="$(arg safe_odom)"/> -->
     
-    <arg name="odom_topic" default="/vicon/neurofly1/odom"/>
+    <!-- <arg name="odom_topic" default="/vicon/neurofly1/odom"/> -->
+    <arg name="odom_topic" default="/quadrotor_ukf/control_odom"/>
+    <!-- <arg name="odom_topic" default="/zedm/zed_node/odom"/> -->
 	<!-- <arg name="odom_topic" default="/quadrotor/odom"/> -->
 
     <!-- <remap from="/zedm/zed_node/odom" to="/quadrotor/odom"/>     -->
@@ -19,7 +21,15 @@
 	</group>
 
     <!-- zed launch -->
-    <!-- <include file="$(find zed_wrapper)/launch/zedm.launch"/> -->
+    <include file="$(find zed_wrapper)/launch/zedm.launch"/>
+
+    <!-- quadrotor_ukf launch-->
+    <include file="$(find quadrotor_ukf)/launch/quadrotor_ukf.launch">
+        <arg name="launch_prefix" value=""/>
+        <arg name="odom_frame_id" value="map"/>
+        <arg name="imu_rotated_frame_id" value="base_link"/>
+        <arg name="imu_frame_id" value="zedm_imu_link"/>
+    </include>
 
 	<include file="$(find control_launch)/launch/control_mp.launch">
 		<arg name="mass" value="$(arg mass)"/>
