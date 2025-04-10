@@ -26,7 +26,7 @@
     <!-- quadrotor_ukf launch-->
     <include file="$(find quadrotor_ukf)/launch/quadrotor_ukf.launch">
         <arg name="launch_prefix" value=""/>
-        <arg name="odom_frame_id" value="map"/>
+        <arg name="odom_frame_id" value="odom"/>
         <arg name="imu_rotated_frame_id" value="base_link"/>
         <arg name="imu_frame_id" value="zedm_imu_link"/>
     </include>
