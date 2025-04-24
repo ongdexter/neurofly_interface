@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-	<arg name="mass" default="0.67"/>
+	<arg name="mass" default="0.736"/>
 	<arg name="gains_file" default="$(find control_launch)/config/so3_control_gains.yaml"/>
 	<arg name="robot" default="quadrotor" />
 	<!-- <arg name="odom_topic" default="/vicon/f250_ariel/odom" /> -->
@@ -44,5 +44,4 @@
     </include>
 
 	<node pkg="tf2_ros" type="static_transform_publisher" name="init_world_odom_transform_pub" args="0 0 0 0 0 0 world odom"/>
-	<node pkg="tf2_ros" type="static_transform_publisher" name="init_odom_robotodom_transform_pub" args="0 0 0 0 0 0 odom dragonfly67/odom"/>
 </launch>
