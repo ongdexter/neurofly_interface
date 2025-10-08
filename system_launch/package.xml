@@ -1,14 +1,32 @@
 <?xml version="1.0"?>
-<package>
-    <name>system_launch</name>
+<package format="3">
+    <name>neurofly_system_launch</name>
     <version>0.0.0</version>
-    <description>The system_launch package</description>
+    <description>The neurofly system launch package</description>
 
-    <maintainer email="yztao@seas.upenn.edu">Yuezhan Tao</maintainer>
-    
+    <maintainer email="dexterong94@gmail.com">Dexter Ong</maintainer>
     <license>TBD</license>
-    <buildtool_depend>catkin</buildtool_depend>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <!-- runtime dependencies referenced by the launch files -->
+    <exec_depend>launch</exec_depend>
+    <exec_depend>launch_ros</exec_depend>
+    <exec_depend>launch_testing</exec_depend>
+    <exec_depend>rclcpp_components</exec_depend>
+    <exec_depend>robot_state_publisher</exec_depend>
+    <exec_depend>tf2_ros</exec_depend>
+
+    <!-- package-specific dependencies used by included launch files and nodes -->
+    <exec_depend>zed_wrapper</exec_depend>
+    <exec_depend>mocap_vicon</exec_depend>
+    <exec_depend>kr_mav_manager</exec_depend>
+    <exec_depend>kr_betaflight_interface</exec_depend>
+    <exec_depend>kr_trackers_manager</exec_depend>
+    <exec_depend>kr_mav_controllers</exec_depend>
+    <exec_depend>quadrotor_ukf_ros2</exec_depend>
 
     <export>
     </export>
+
 </package>
