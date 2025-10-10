@@ -14,14 +14,14 @@ def generate_launch_description():
 
     # KR interface paths & configurations
     config_file = os.path.join(
-        get_package_share_directory('kr_crsf_interface'),
+        get_package_share_directory('kr_betaflight_interface'),
         'config',
         'neurofly.yaml'
     )
 
-    trackers_manager_config_file = FindPackageShare('kr_trackers_manager').find('kr_trackers_manager') + '/config/trackers_manager.yaml'
+    trackers_manager_config_file = FindPackageShare('kr_betaflight_interface').find('kr_betaflight_interface') + '/config/trackers.yaml'
     so3_config_file = os.path.join(
-        get_package_share_directory('kr_crsf_interface'),
+        get_package_share_directory('kr_betaflight_interface'),
         'config',
         'gains.yaml'
     )
@@ -44,10 +44,10 @@ def generate_launch_description():
 
     # KR interface arguments
     kr_args = [
-        DeclareLaunchArgument('robot', default_value='neurofly1'),
-        DeclareLaunchArgument('odom', default_value='odom'),
+        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
+        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
+        DeclareLaunchArgument('odom', default_value='control_odom'), # set odom topic (vio/ukf/vicon)
         DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
-        DeclareLaunchArgument('mass', default_value='.680'),
     ]
 
     # ZED camera arguments
@@ -76,9 +76,9 @@ def generate_launch_description():
         executable="component_container_mt",
         composable_node_descriptions=[
             ComposableNode(
-                package="kr_crsf_interface",
-                plugin="SO3CmdToCRSF",
-                name="so3cmd_to_crsf",
+                package="kr_betaflight_interface",
+                plugin="SO3CmdToBetaflight",
+                name="so3cmd_to_betaflight",
                 namespace=LaunchConfiguration('robot'),
                 parameters=[config_file],
                 remappings=[
@@ -108,14 +108,16 @@ def generate_launch_description():
                 plugin="SO3ControlComponent",
                 name="so3_controller",
                 namespace=LaunchConfiguration('robot'),
-                parameters=[so3_config_file],
+                parameters=[
+                    [so3_config_file],
+                ],
             ),
             ComposableNode(
                 condition=IfCondition(LaunchConfiguration('zed_enable')),
                 package="zed_components",
                 plugin="stereolabs::ZedCamera",
                 name="zed_node",
-                namespace="zed",
+                namespace=LaunchConfiguration('robot'),
                 parameters=[
                     [FindPackageShare('zed_wrapper').find('zed_wrapper'), '/config/', LaunchConfiguration('camera_model'), '.yaml'],
                     [FindPackageShare('zed_wrapper').find('zed_wrapper'), '/config/common_stereo.yaml'],
@@ -142,8 +144,8 @@ def generate_launch_description():
                     'base_link': 'zed_camera_link'
                 }],
                 remappings=[
-                    ('odom', '/zed/zed_node/odom'),
-                    ('imu', '/zed/zed_node/imu/data'),
+                    ('odom', 'zed_node/odom'),
+                    ('imu', 'zed_node/imu/data'),
                 ],
             ),
         ],
@@ -188,7 +190,7 @@ def generate_launch_description():
                 {'publish_pts': False},
                 {'fixed_frame_id': 'mocap'},
                 # Set to [''] to take in ALL models from Vicon
-                {'model_list': ['neurofly1']},
+                {'model_list': [LaunchConfiguration('robot')]},
             ],
             remappings=[
                 # Uncomment and modify the remapping if needed
