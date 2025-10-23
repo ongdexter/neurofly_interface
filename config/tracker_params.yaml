@@ -19,12 +19,7 @@ velocity_tracker:
   timeout: 0.5
 
 lissajous_tracker:
-  frame_id: simulator
+  frame_id: odom
 
 lissajous_adder:
-  frame_id: simulator
-
-
-stopping_policy:
-  default_a_des: 1.0
-  default_j_des: 2.0
+  frame_id: odom

@@ -13,17 +13,17 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
 
     # KR interface paths & configurations
-    config_file = os.path.join(
+    betaflight_config_file = os.path.join(
         get_package_share_directory('kr_betaflight_interface'),
         'config',
         'neurofly.yaml'
     )
 
-    trackers_manager_config_file = FindPackageShare('kr_betaflight_interface').find('kr_betaflight_interface') + '/config/trackers.yaml'
+    trackers_manager_config_file = FindPackageShare('neurofly_interface').find('neurofly_interface') + '/config/trackers.yaml'
     so3_config_file = os.path.join(
-        get_package_share_directory('kr_betaflight_interface'),
+        get_package_share_directory('neurofly_interface'),
         'config',
-        'gains.yaml'
+        'neurofly_gains.yaml'
     )
 
     # URDF/xacro file to be loaded by the Robot State Publisher node
@@ -37,18 +37,10 @@ def generate_launch_description():
     vicon_args = [
         # Adding mocap vicon specific parameters
         DeclareLaunchArgument('mocap', default_value='false'),
-        DeclareLaunchArgument('mocap_server', default_value='mocap.perch'),
+        DeclareLaunchArgument('mocap_server', default_value='192.168.8.2'),
         DeclareLaunchArgument('mocap_frame_rate', default_value='100'),
         DeclareLaunchArgument('mocap_max_accel', default_value='10.0'),
-    ]
-
-    # KR interface arguments
-    kr_args = [
-        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
-        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
-        DeclareLaunchArgument('odom', default_value='control_odom'), # set odom topic (vio/ukf/vicon)
-        DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
-    ]
+    ]    
 
     # ZED camera arguments
     zed_args = [
@@ -63,6 +55,19 @@ def generate_launch_description():
         DeclareLaunchArgument('custom_baseline', default_value='0.0'),
         DeclareLaunchArgument('enable_gnss', default_value='false'),
         DeclareLaunchArgument('publish_svo_clock', default_value='false'),
+    ]
+
+    # KR interface arguments
+    kr_args = [
+        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
+        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
+        DeclareLaunchArgument(
+            'odom',
+            default_value=PythonExpression([
+            '"control_odom"' if LaunchConfiguration('zed_enable') == 'true' else '"odom"'
+            ])
+        ), # set odom topic (vio/ukf/vicon)
+        DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
     ]
 
     # Initialize launch description with all arguments
@@ -80,7 +85,7 @@ def generate_launch_description():
                 plugin="SO3CmdToBetaflight",
                 name="so3cmd_to_betaflight",
                 namespace=LaunchConfiguration('robot'),
-                parameters=[config_file],
+                parameters=[betaflight_config_file],
                 remappings=[
                     ('so3_cmd', LaunchConfiguration('so3_cmd')),
                     ('odom', LaunchConfiguration('odom')),
@@ -131,8 +136,9 @@ def generate_launch_description():
                     }
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}]
-            ),            
+            ),
             ComposableNode(
+                condition=IfCondition(LaunchConfiguration('zed_enable')),
                 package="quadrotor_ukf_ros2",
                 plugin="QuadrotorUKFNode",
                 name="quadrotor_ukf_ros2",
@@ -147,6 +153,25 @@ def generate_launch_description():
                     ('odom', 'zed_node/odom'),
                     ('imu', 'zed_node/imu/data'),
                 ],
+            ),
+            ComposableNode(
+                condition=IfCondition(LaunchConfiguration('mocap')),
+                package='mocap_vicon',
+                plugin='mocap::ViconDriverComponent',
+                name='vicon',
+                namespace='vicon',
+                parameters=[
+                    {'server_address': LaunchConfiguration('mocap_server')},
+                    {'frame_rate': LaunchConfiguration('mocap_frame_rate')},
+                    {'max_accel': LaunchConfiguration('mocap_max_accel')},
+                    {'publish_tf': False},
+                    {'publish_pts': False},
+                    {'fixed_frame_id': 'mocap'},
+                    {'model_list': ['']},
+                ],
+                remappings=[
+                    ('/vicon/neurofly1/odom', '/neurofly1/control_odom'),
+                ]
             ),
         ],
         output='screen',
@@ -175,30 +200,6 @@ def generate_launch_description():
         )
     )
 
-    ld.add_action(
-        Node(
-            condition=IfCondition(LaunchConfiguration('mocap')),
-            package='mocap_vicon',
-            executable='mocap_vicon_node',
-            name='vicon',
-            output='screen',
-            parameters=[
-                {'server_address': LaunchConfiguration('mocap_server')},
-                {'frame_rate': LaunchConfiguration('mocap_frame_rate')},
-                {'max_accel': LaunchConfiguration('mocap_max_accel')},
-                {'publish_tf': False},
-                {'publish_pts': False},
-                {'fixed_frame_id': 'mocap'},
-                # Set to [''] to take in ALL models from Vicon
-                {'model_list': [LaunchConfiguration('robot')]},
-            ],
-            remappings=[
-                # Uncomment and modify the remapping if needed
-                ('/neurofly1/odom', '/odom'),
-            ]
-        )
-    )
-    
     ld.add_action(
         Node(
             package="kr_mav_manager",
