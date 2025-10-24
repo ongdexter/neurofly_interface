@@ -49,8 +49,11 @@ def generate_launch_description():
         'config',
         'neurofly.yaml'
     )
-
-    trackers_manager_config_file = FindPackageShare('neurofly_interface').find('neurofly_interface') + '/config/trackers.yaml'
+    trackers_manager_config_file = os.path.join(
+        get_package_share_directory('neurofly_interface'),
+        'config',
+        'neurofly_trackers.yaml'
+    )
     so3_config_file = os.path.join(
         get_package_share_directory('neurofly_interface'),
         'config',
