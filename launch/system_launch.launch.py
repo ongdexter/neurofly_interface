@@ -19,12 +19,36 @@ def generate_launch_description():
         'neurofly.yaml'
     )
 
-    trackers_manager_config_file = FindPackageShare('neurofly_interface').find('neurofly_interface') + '/config/trackers.yaml'
+    trackers_manager_config_file = os.path.join(
+        get_package_share_directory('neurofly_interface'),
+        'config',
+        'neurofly_trackers.yaml'
+    )
+
     so3_config_file = os.path.join(
         get_package_share_directory('neurofly_interface'),
         'config',
         'neurofly_gains.yaml'
     )
+
+    # KR interface arguments
+    kr_args = [
+        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
+        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
+        DeclareLaunchArgument('odom', default_value='control_odom'), # set odom topic (vio/ukf/vicon)
+        DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
+        DeclareLaunchArgument('zed_enable', default_value='true'),
+        DeclareLaunchArgument('ukf_enable', default_value='false'),
+        DeclareLaunchArgument('vicon_enable', default_value='true'),
+    ]
+
+    # Define launch arguments
+    vicon_args = [
+        # Adding mocap vicon specific parameters
+        DeclareLaunchArgument('mocap_server', default_value='192.168.8.2'),
+        DeclareLaunchArgument('mocap_frame_rate', default_value='100'),
+        DeclareLaunchArgument('mocap_max_accel', default_value='10.0'),
+    ]    
 
     # URDF/xacro file to be loaded by the Robot State Publisher node
     default_xacro_path = os.path.join(
@@ -32,19 +56,9 @@ def generate_launch_description():
         'urdf',
         'zed_descr.urdf.xacro'
     )
-
-    # Define launch arguments
-    vicon_args = [
-        # Adding mocap vicon specific parameters
-        DeclareLaunchArgument('mocap', default_value='false'),
-        DeclareLaunchArgument('mocap_server', default_value='192.168.8.2'),
-        DeclareLaunchArgument('mocap_frame_rate', default_value='100'),
-        DeclareLaunchArgument('mocap_max_accel', default_value='10.0'),
-    ]    
-
+    
     # ZED camera arguments
-    zed_args = [
-        DeclareLaunchArgument('zed_enable', default_value='true'),
+    zed_args = [        
         DeclareLaunchArgument('camera_name', default_value='zed'),
         DeclareLaunchArgument('camera_model', default_value='zedm'),
         DeclareLaunchArgument('publish_urdf', default_value='true'),
@@ -55,20 +69,7 @@ def generate_launch_description():
         DeclareLaunchArgument('custom_baseline', default_value='0.0'),
         DeclareLaunchArgument('enable_gnss', default_value='false'),
         DeclareLaunchArgument('publish_svo_clock', default_value='false'),
-    ]
-
-    # KR interface arguments
-    kr_args = [
-        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
-        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
-        DeclareLaunchArgument(
-            'odom',
-            default_value=PythonExpression([
-            '"control_odom"' if LaunchConfiguration('zed_enable') == 'true' else '"odom"'
-            ])
-        ), # set odom topic (vio/ukf/vicon)
-        DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
-    ]
+    ]    
 
     # Initialize launch description with all arguments
     ld = LaunchDescription(vicon_args + kr_args + zed_args)
@@ -138,7 +139,7 @@ def generate_launch_description():
                 extra_arguments=[{'use_intra_process_comms': True}]
             ),
             ComposableNode(
-                condition=IfCondition(LaunchConfiguration('zed_enable')),
+                condition=IfCondition(LaunchConfiguration('ukf_enable')),
                 package="quadrotor_ukf_ros2",
                 plugin="QuadrotorUKFNode",
                 name="quadrotor_ukf_ros2",
@@ -155,7 +156,7 @@ def generate_launch_description():
                 ],
             ),
             ComposableNode(
-                condition=IfCondition(LaunchConfiguration('mocap')),
+                condition=IfCondition(LaunchConfiguration('vicon_enable')),
                 package='mocap_vicon',
                 plugin='mocap::ViconDriverComponent',
                 name='vicon',
@@ -166,7 +167,7 @@ def generate_launch_description():
                     {'max_accel': LaunchConfiguration('mocap_max_accel')},
                     {'publish_tf': False},
                     {'publish_pts': False},
-                    {'fixed_frame_id': 'mocap'},
+                    {'fixed_frame_id': 'world'},
                     {'model_list': ['']},
                 ],
                 remappings=[
