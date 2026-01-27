@@ -1,4 +1,4 @@
-FROM stereolabs/zed:5.0-tools-devel-l4t-r36.4
+FROM stereolabs/zed:5.1-tools-devel-l4t-r36.4
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -82,13 +82,13 @@ RUN rosdep init
 RUN rosdep update
 
 # autonomy workspace
-RUN mkdir -p /root/ros2_ws/src
-WORKDIR /root/ros2_ws/src
-RUN --mount=type=ssh git clone https://github.com/stereolabs/zed-ros2-wrapper.git
+RUN mkdir -p /root/nf_ws/src
+WORKDIR /root/nf_ws/src
+RUN --mount=type=ssh git clone -b humble-v5.1.0 https://github.com/stereolabs/zed-ros2-wrapper.git
 RUN --mount=type=ssh git clone -b ros2-humble https://github.com/KumarRobotics/motion_capture_system.git
 RUN --mount=type=ssh git clone https://github.com/berndpfrommer/rosbag2_composable_recorder.git
 RUN --mount=type=ssh git clone https://github.com/ongdexter/kr_mav_control.git
-WORKDIR /root/ros2_ws
+WORKDIR /root/nf_ws
 RUN . /opt/ros/humble/setup.sh && rosdep install --from-paths src --ignore-src -r -y
 RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --parallel-workers $(nproc) \
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
@@ -99,11 +99,10 @@ RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --parallel-work
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
     --packages-up-to zed_wrapper
 
-# dvs workspace
-RUN mkdir -p /root/dvs_ws/src
-WORKDIR /root/dvs_ws/src
+# dvs
+WORKDIR /root/nf_ws/src
 RUN --mount=type=ssh git clone https://github.com/ongdexter/dv-ros2.git
-WORKDIR /root/dvs_ws
+WORKDIR /root/nf_ws
 RUN . /opt/ros/humble/setup.sh && rosdep install --from-paths src --ignore-src -r -y
 RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --parallel-workers $(nproc) \
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
@@ -111,5 +110,4 @@ RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install --parallel-work
 
 # setup environment
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
-    echo "source /root/ros2_ws/install/local_setup.bash" >> ~/.bashrc && \
-    echo "source /root/dvs_ws/install/local_setup.bash" >> ~/.bashrc
+    echo "source /root/nf_ws/install/setup.bash" >> ~/.bashrc
