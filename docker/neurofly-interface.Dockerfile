@@ -1,4 +1,4 @@
-FROM stereolabs/zed:5.1-tools-devel-l4t-r36.4
+FROM stereolabs/zed:5.0-tools-devel-l4t-r36.4
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -22,6 +22,10 @@ ARG UBUNTU_CODENAME=jammy
 # upgrade opencv
 RUN apt remove libopencv-dev -y && apt purge -y libopencv* && apt remove -y opencv-licenses
 RUN apt install -y libopencv-dev
+
+# upgrade tmuxp
+RUN apt remove tmuxp -y
+RUN pip3 install tmuxp
 
 RUN apt update && apt install curl -y
 RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}')
@@ -84,7 +88,7 @@ RUN rosdep update
 # autonomy workspace
 RUN mkdir -p /root/nf_ws/src
 WORKDIR /root/nf_ws/src
-RUN --mount=type=ssh git clone -b humble-v5.1.0 https://github.com/stereolabs/zed-ros2-wrapper.git
+RUN --mount=type=ssh git clone -b humble-v5.0.0 https://github.com/stereolabs/zed-ros2-wrapper.git
 RUN --mount=type=ssh git clone -b ros2-humble https://github.com/KumarRobotics/motion_capture_system.git
 RUN --mount=type=ssh git clone https://github.com/berndpfrommer/rosbag2_composable_recorder.git
 RUN --mount=type=ssh git clone https://github.com/ongdexter/kr_mav_control.git

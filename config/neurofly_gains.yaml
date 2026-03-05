@@ -1,6 +1,5 @@
-# neurofly1
-quadrotor_name: neurofly1
-mass: 0.68
+# quadrotor_name is set via the launch file's 'robot' argument
+mass: 0.91
 
 kp_x: 6.0
 kp_y: 6.0

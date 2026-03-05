@@ -33,13 +33,13 @@ def generate_launch_description():
 
     # KR interface arguments
     kr_args = [
-        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
-        DeclareLaunchArgument('mass', default_value='.680'), # set mass AUW
+        DeclareLaunchArgument('robot', default_value='neurofly2'), # set robot namespace        
+        DeclareLaunchArgument('mass', default_value='0.91'), # set mass AUW
         DeclareLaunchArgument('odom', default_value='control_odom'), # set odom topic (vio/ukf/vicon)
         DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
         DeclareLaunchArgument('zed_enable', default_value='true'),
-        DeclareLaunchArgument('ukf_enable', default_value='false'),
-        DeclareLaunchArgument('vicon_enable', default_value='true'),
+        DeclareLaunchArgument('ukf_enable', default_value='true'),
+        DeclareLaunchArgument('vicon_enable', default_value='false'),
     ]
 
     # Define launch arguments
@@ -116,6 +116,7 @@ def generate_launch_description():
                 namespace=LaunchConfiguration('robot'),
                 parameters=[
                     [so3_config_file],
+                    {'quadrotor_name': LaunchConfiguration('robot')},
                 ],
             ),
             ComposableNode(
@@ -171,7 +172,8 @@ def generate_launch_description():
                     {'model_list': ['']},
                 ],
                 remappings=[
-                    ('/vicon/neurofly1/odom', '/neurofly1/control_odom'),
+                    (['/vicon/', LaunchConfiguration('robot'), '/odom'],
+                     ['/', LaunchConfiguration('robot'), '/control_odom']),
                 ]
             ),
         ],
@@ -210,6 +212,7 @@ def generate_launch_description():
             output='screen',
             parameters = [
                 {'mass': LaunchConfiguration('mass')},
+                {'robot': LaunchConfiguration('robot')},
             ],
         )
     )

@@ -1,4 +1,4 @@
- /neurofly1/trackers_manager:
+ /**/trackers_manager:
   ros__parameters:
     # Corrected trackers list: each tracker must be a separate string element
     trackers: ["NullTracker", "LineTrackerDistance", "LineTrackerMinJerk", "PolyTracker"]
