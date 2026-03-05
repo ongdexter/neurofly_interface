@@ -33,7 +33,7 @@ def generate_launch_description():
 
     # KR interface arguments
     kr_args = [
-        DeclareLaunchArgument('robot', default_value='neurofly2'), # set robot namespace        
+        DeclareLaunchArgument('robot', default_value='neurofly1'), # set robot namespace        
         DeclareLaunchArgument('mass', default_value='0.91'), # set mass AUW
         DeclareLaunchArgument('odom', default_value='control_odom'), # set odom topic (vio/ukf/vicon)
         DeclareLaunchArgument('so3_cmd', default_value='so3_cmd'),
